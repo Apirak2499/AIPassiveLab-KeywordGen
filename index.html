@@ -797,7 +797,7 @@ function init() {
 // ============================================================
 function switchTab(tab) {
   document.querySelectorAll('.main-tab').forEach((el,i) => {
-    const tabs = ['generator','apiconfig','rejected','seasonal','trademark','history','settings'];
+    const tabs = ['generator','seasonal','rejected','trademark','history','settings','apiconfig'];
     el.classList.toggle('active', tabs[i] === tab);
   });
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));

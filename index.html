@@ -12,7 +12,6 @@
 <meta name="apple-mobile-web-app-title" content="Merch Keywords">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 :root {
@@ -335,7 +334,6 @@ tr:hover td { background:rgba(0,210,235,.02); }
             <button class="btn btn-red" onclick="stopGeneration()" id="btnStop" disabled style="opacity:0.4">⏹ หยุด</button>
             <button class="btn" onclick="pauseGeneration()" id="btnPause" disabled style="background:#eab308;color:#000;opacity:0.4">⏸ หยุดชั่วคราว</button>
             <button class="btn btn-green" onclick="resumeGeneration()" id="btnResume" style="display:none">▶ ดำเนินการต่อ</button>
-            <button class="btn btn-primary" onclick="exportExcel()" id="btnExport" disabled>📥 Export Excel</button>
             <button class="btn btn-red" onclick="clearResults()" id="btnClear" disabled>🗑️ ล้าง</button>
           </div>
         </div>
@@ -978,7 +976,6 @@ function deleteSelectedImages() {
 function refreshStats() {
   if(!results.length) {
     document.getElementById('statsBar').classList.add('hidden');
-    document.getElementById('btnExport').disabled = true;
     document.getElementById('btnClear').disabled = true;
     return;
   }
@@ -1423,7 +1420,6 @@ async function generateKeywords() {
 
   document.getElementById('btnGenerate').disabled = true;
   document.getElementById('progressArea').classList.remove('hidden');
-  document.getElementById('btnExport').disabled = true;
   document.getElementById('btnClear').disabled = true;
   document.getElementById('statsBar').classList.remove('hidden');
   showGenControls(true);
@@ -1581,7 +1577,6 @@ async function generateKeywords() {
     document.getElementById('progressText').textContent = `✅ เสร็จสิ้น! ประมวลผล ${selected.length} รูป`;
   }
   document.getElementById('btnGenerate').disabled = false;
-  document.getElementById('btnExport').disabled = false;
   document.getElementById('btnClear').disabled = false;
   showGenControls(false);
 
@@ -1664,57 +1659,11 @@ function showStatus(msg, type) {
 function clearResults() {
   results = [];
   renderResults();
-  document.getElementById('btnExport').disabled = true;
   document.getElementById('btnClear').disabled = true;
   document.getElementById('progressArea').classList.add('hidden');
   document.getElementById('statsBar').classList.add('hidden');
 }
 
-// ============================================================
-// EXPORT EXCEL
-// ============================================================
-function exportExcel() {
-  if(!results.length) return;
-  const headers = [
-    'Image Path','Input Language','Title','Description','Tags','Type','Color','',
-    'Brand','Bullet Points 1','Bullet Points 2',
-    'Color1','Color2','Color3','Color4','Color5','Color6','Color7','Color8','Color9','Color10',
-    'Product','Marketplace','Price US'
-  ];
-  const wsData = [headers];
-  results.forEach(r => {
-    const validKWs = r.validKeywords.map(k => k.replace(/ T-Shirt$/i,'')).join(', ');
-    const row = [
-      r.imagePath,
-      'EN',
-      r.title,
-      r.description || '',
-      validKWs,
-      r.type,
-      'black',
-      '',
-      r.brand,
-      r.bulletPoint1 || '',
-      r.bulletPoint2 || ''
-    ];
-    for(let c=0;c<10;c++) row.push('');
-    row.push('Standard t-shirt','US','15.99');
-    wsData.push(row);
-  });
-  const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.aoa_to_sheet(wsData);
-  const colWidths = [{wch:25},{wch:12},{wch:60},{wch:60},{wch:50},{wch:25},{wch:16},{wch:3},{wch:20},{wch:40},{wch:40},
-    {wch:16},{wch:16},{wch:16},{wch:16},{wch:16},{wch:16},{wch:16},{wch:16},{wch:16},{wch:16},
-    {wch:18},{wch:12},{wch:10}];
-  ws['!cols'] = colWidths;
-  XLSX.utils.book_append_sheet(wb, ws, 'ชีต1');
-  const now = new Date();
-  const dateStr = now.toISOString().slice(0,10).replace(/-/g,'');
-  const timeStr = now.toTimeString().slice(0,8).replace(/:/g,'');
-  const filename = `Amazon_Merch_Keywords_${dateStr}_${timeStr}.xlsx`;
-  XLSX.writeFile(wb, filename);
-  showStatus('📥 Export สำเร็จ: '+filename, 'success');
-}
 
 // ============================================================
 // REJECTED DB UI
